@@ -32,8 +32,8 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 
-TARGET_SIZE = (96, 96)
-BATCH_SIZE = 64
+TARGET_SIZE = (540, 540)
+BATCH_SIZE = 4
 
 class PREPROCESSING(object):
     
@@ -152,7 +152,7 @@ class SynDetectModel(object):
         train_path = 'exclude/dataset/train/'
         test_path = 'exclude/dataset/test/'
 
-        train_generator = ImageDataGenerator(horizontal_flip=True, vertical_flip=False, shear_range=0.3, zoom_range=0.3, rescale=1 / 255)
+        train_generator = ImageDataGenerator(horizontal_flip=True, vertical_flip=True, shear_range=0.2, zoom_range=0.2, rescale=1 / 255)
         # train_generator = ImageDataGenerator(horizontal_flip=False, vertical_flip=False, rescale=1 / 255)
         test_generator = ImageDataGenerator(rescale=1 / 255, validation_split=0.5)
 
@@ -166,33 +166,45 @@ class SynDetectModel(object):
     def _build_layer(self):
         layers = [
             #Conv2D(32, (3, 3), padding='same', input_shape=(TARGET_SIZE[0], TARGET_SIZE[1], 3), activation=LeakyReLU(0.1)),
-            Conv2D(32, (3, 3), padding='same', input_shape=(TARGET_SIZE[0], TARGET_SIZE[1], 3), activation='relu'),
+            Conv2D(128, (3, 3), padding='same', input_shape=(TARGET_SIZE[0], TARGET_SIZE[1], 3), activation='relu'),
             #Conv2D(32, (3, 3), padding='same', activation=LeakyReLU(0.1)),
             MaxPool2D(pool_size=(2, 2)),
             BatchNormalization(),
-            Dropout(0.5),
+            Dropout(0.2),
 
-            Conv2D(32, (3, 3), padding='same', activation='relu'),
+            Conv2D(96, (3, 3), padding='same', activation='relu'),
             #Conv2D(64, (3, 3), padding='same', activation=LeakyReLU(0.1)),
             MaxPool2D(pool_size=(2, 2)),
             BatchNormalization(),
-            Dropout(0.5),
+            Dropout(0.2),
 
             Conv2D(64, (3, 3), padding='same', activation='relu'),
             #Conv2D(64, (3, 3), padding='same', activation=LeakyReLU(0.1)),
             MaxPool2D(pool_size=(2, 2)),
             BatchNormalization(),
-            Dropout(0.5),
+            Dropout(0.2),
 
-            # Conv2D(256, (3, 3), padding='same', activation=LeakyReLU(0.1)),
-            # MaxPool2D(pool_size=(2, 2)),
-            # BatchNormalization(),
+            Conv2D(48, (3, 3), padding='same', activation='relu'),
+            MaxPool2D(pool_size=(2, 2)),
+            BatchNormalization(),
+            Dropout(0.2),
+
+            Conv2D(32, (3, 3), padding='same', activation='relu'),
+            MaxPool2D(pool_size=(2, 2)),
+            BatchNormalization(),
+            Dropout(0.2),
+
+            Conv2D(16, (3, 3), padding='same', activation='relu'),
+            MaxPool2D(pool_size=(2, 2)),
+            BatchNormalization(),
+            Dropout(0.2),
 
             Flatten(),
-            Dense(units=64, activation='relu'),
+            Dense(units=8, activation='relu'),
+            Dense(units=4, activation='relu'),
             # Dense(units=64, activation=LeakyReLU(0.1)),
-            Dropout(0.5),
-            Dense(units=2),
+            #Dropout(0.2),
+            #Dense(units=2),
             Dense(units=1, activation='sigmoid')]
 
         return layers
@@ -512,7 +524,7 @@ def main():
 
 
     epochs = 2000
-    early_stop = EarlyStopping(monitor='loss', patience=10)
+    early_stop = EarlyStopping(monitor='loss', patience=30)
 
     # Synthesis Detection --> True/False
     train_set, valid_set, test_set = S.augment_image()
